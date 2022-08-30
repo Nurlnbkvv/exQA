@@ -1,0 +1,40 @@
+create table "qa".flight(
+    airplane_model varchar (255) not null,
+    departure_time timestamp not null,
+    departure_point varchar (255) references airport(airport_code),
+    place_of_arrival varchar (255) references airport(airport_code),
+    flight_duration int not null,
+    number_of_seats int not null,
+    flight_number serial primary key,
+    foreign key (flight_number) references ticket(ticket_number)
+);
+
+create table "qa".country(
+    country_code varchar (255) primary key,
+    foreign key (country_code) references airport(airport_country_code),
+    name_country varchar (255) references client(nationality)
+);
+
+create table "qa".airport(
+    airport_code varchar (255) not null primary key,
+    foreign key (airport_code) references flight(departure_point, place_of_arrival),
+    city_location varchar (255) not null,
+    airport_country_code varchar (255) references country(country_code)
+);
+
+create table "qa".client(
+    inn int not null unique,
+    passport_id serial primary key,
+    foreign key (passport_id) references ticket(ticket_client_id),
+    fio varchar (255) not null,
+    year_of_birth int not null,
+    gender varchar (255) not null,
+    nationality varchar (255) not null references country(name_country)
+);
+
+create table "qa".ticket(
+    ticket_client_id int references client(passport_id),
+    ticket_flight_number int not null,
+    ticket_pick_up_time timestamp not null,
+    ticket_number serial references flight(flight_number)
+);

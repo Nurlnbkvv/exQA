@@ -1,0 +1,123 @@
+create table flight
+(
+    airplane_model   varchar(255) not null,
+    departure_time   timestamp    not null,
+    departure_point  varchar(255) not null,
+    place_of_arrival varchar(255) not null,
+    flight_duration  integer      not null,
+    number_of_seats  integer      not null,
+    flight_number    serial
+        constraint flight_pk
+            primary key
+);
+
+alter table flight
+    owner to postgres;
+
+create unique index flight_departure_point_uindex
+    on flight (departure_point);
+
+create unique index flight_place_of_arrival_uindex
+    on flight (place_of_arrival);
+
+create table country
+(
+    country_code varchar(255) not null
+        constraint country_pk
+            primary key,
+    name_country varchar(255) not null
+);
+
+alter table country
+    owner to postgres;
+
+create unique index country_name_country_uindex
+    on country (name_country);
+
+create table airport
+(
+    airport_code         varchar(255) not null
+        constraint airport_pk
+            primary key
+        constraint airport_flight_departure_point_fk
+            references flight (departure_point)
+        constraint airport_flight_place_of_arrival_fk
+            references flight (place_of_arrival),
+    city_location        varchar(255) not null,
+    airport_country_code varchar(255) not null
+        constraint airport_country_country_code_fk
+            references country
+);
+
+alter table airport
+    owner to postgres;
+
+alter table flight
+    add constraint flight_airport_airport_code_fk
+        foreign key (departure_point) references airport;
+
+alter table flight
+    add constraint flight_airport_airport_code_fk_2
+        foreign key (place_of_arrival) references airport;
+
+create unique index airport_airport_country_code_uindex
+    on airport (airport_country_code);
+
+create unique index airport_airport_code_uindex
+    on airport (airport_code);
+
+create table client
+(
+    inn           integer      not null
+        unique,
+    passport_id   serial
+        primary key,
+    fio           varchar(255) not null,
+    year_of_birth integer      not null,
+    gender        varchar(255) not null,
+    nationality   varchar(255) not null
+        constraint client_country_name_country_fk
+            references country (name_country)
+);
+
+alter table client
+    owner to postgres;
+
+alter table country
+    add constraint country_client_nationality_fk
+        foreign key (name_country) references client (nationality);
+
+create unique index client_nationality_uindex
+    on client (nationality);
+
+create table ticket
+(
+    ticket_client_id     integer   not null
+        constraint ticket_client_passport_id_fk
+            references client,
+    ticket_flight_number integer   not null,
+    ticket_pick_up_time  timestamp not null,
+    ticket_number        serial
+        constraint ticket_pk
+            primary key
+        constraint ticket_flight_flight_number_fk
+            references flight
+);
+
+alter table ticket
+    owner to postgres;
+
+alter table flight
+    add constraint flight_ticket_ticket_number_fk
+        foreign key (flight_number) references ticket;
+
+alter table client
+    add constraint client_ticket_ticket_client_id_fk
+        foreign key (passport_id) references ticket (ticket_client_id);
+
+create unique index ticket_ticket_number_uindex
+    on ticket (ticket_number);
+
+create unique index ticket_ticket_client_id_uindex
+    on ticket (ticket_client_id);
+
